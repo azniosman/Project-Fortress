@@ -1,88 +1,101 @@
-AWSTemplateFormatVersion: "2010-09-09"
-Description: Base infrastructure stack for Project Fortress
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Project Fortress - Base Infrastructure Stack for PaymentFlow API'
 
 Parameters:
   Environment:
     Type: String
-    Default: dev
-    AllowedValues:
-      - dev
-      - staging
-      - prod
-    Description: Deployment environment
+    AllowedValues: [dev, staging, prod]
+    Description: Environment name
 
   VPCCidrBlock:
     Type: String
     Default: 10.0.0.0/16
-    Description: CIDR block for the VPC
+    Description: CIDR block for VPC
 
   PublicSubnet1CidrBlock:
     Type: String
     Default: 10.0.1.0/24
-    Description: CIDR block for Public Subnet 1
+    Description: CIDR block for public subnet 1
 
   PrivateSubnet1CidrBlock:
     Type: String
     Default: 10.0.2.0/24
-    Description: CIDR block for Private Subnet 1
+    Description: CIDR block for private subnet 1
+
+Mappings:
+  EnvironmentMap:
+    dev:
+      instanceType: t3.micro
+    staging:
+      instanceType: t3.small
+    prod:
+      instanceType: t3.medium
 
 Resources:
+  # VPC and Networking
   VPC:
     Type: AWS::EC2::VPC
     Properties:
       CidrBlock: !Ref VPCCidrBlock
-      EnableDnsSupport: true
       EnableDnsHostnames: true
+      EnableDnsSupport: true
       Tags:
         - Key: Name
-          Value: !Sub ${Environment}-vpc
-
-  PublicSubnet1:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId: !Ref VPC
-      CidrBlock: !Ref PublicSubnet1CidrBlock
-      AvailabilityZone: !Select [0, !GetAZs ""]
-      MapPublicIpOnLaunch: true
-      Tags:
-        - Key: Name
-          Value: !Sub ${Environment}-public-subnet-1
-
-  PrivateSubnet1:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId: !Ref VPC
-      CidrBlock: !Ref PrivateSubnet1CidrBlock
-      AvailabilityZone: !Select [0, !GetAZs ""]
-      MapPublicIpOnLaunch: false
-      Tags:
-        - Key: Name
-          Value: !Sub ${Environment}-private-subnet-1
+          Value: !Sub project-fortress-${Environment}-vpc
+        - Key: Environment
+          Value: !Ref Environment
 
   InternetGateway:
     Type: AWS::EC2::InternetGateway
     Properties:
       Tags:
         - Key: Name
-          Value: !Sub ${Environment}-igw
+          Value: !Sub project-fortress-${Environment}-igw
 
-  VPCGatewayAttachment:
+  AttachGateway:
     Type: AWS::EC2::VPCGatewayAttachment
     Properties:
       VpcId: !Ref VPC
       InternetGatewayId: !Ref InternetGateway
 
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref PublicSubnet1CidrBlock
+      AvailabilityZone: !Select [0, !GetAZs '']
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub project-fortress-${Environment}-public-1
+        - Key: Environment
+          Value: !Ref Environment
+
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref PrivateSubnet1CidrBlock
+      AvailabilityZone: !Select [0, !GetAZs '']
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub project-fortress-${Environment}-private-1
+        - Key: Environment
+          Value: !Ref Environment
+
+  # Route Tables
   PublicRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
       VpcId: !Ref VPC
       Tags:
         - Key: Name
-          Value: !Sub ${Environment}-public-rt
+          Value: !Sub project-fortress-${Environment}-public-rt
 
-  DefaultPublicRoute:
+  PublicRoute:
     Type: AWS::EC2::Route
-    DependsOn: VPCGatewayAttachment
+    DependsOn: AttachGateway
     Properties:
       RouteTableId: !Ref PublicRouteTable
       DestinationCidrBlock: 0.0.0.0/0
@@ -94,6 +107,44 @@ Resources:
       SubnetId: !Ref PublicSubnet1
       RouteTableId: !Ref PublicRouteTable
 
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub project-fortress-${Environment}-private-rt
+
+  PrivateSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet1
+      RouteTableId: !Ref PrivateRouteTable
+
+  # Security Groups
+  APISecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for PaymentFlow API
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+          Description: HTTPS
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub project-fortress-${Environment}-api-sg
+        - Key: Environment
+          Value: !Ref Environment
+
+  # ECR Repository
   ECRRepository:
     Type: AWS::ECR::Repository
     Properties:
@@ -102,49 +153,95 @@ Resources:
         ScanOnPush: true
       ImageTagMutability: IMMUTABLE
       EncryptionConfiguration:
-        EncryptionType: AES256
-
-  SecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: Security group for Project Fortress
-      VpcId: !Ref VPC
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 443
-          ToPort: 443
-          CidrIp: 0.0.0.0/0
+        EncryptionType: KMS
       Tags:
-        - Key: Name
-          Value: !Sub ${Environment}-sg
+        - Key: Environment
+          Value: !Ref Environment
+
+  # ECR Repository Policy
+  ECRRepositoryPolicy:
+    Type: AWS::ECR::RepositoryPolicy
+    Properties:
+      RepositoryName: !Ref ECRRepository
+      PolicyText:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowPull
+            Effect: Allow
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Action:
+              - ecr:GetDownloadUrlForLayer
+              - ecr:BatchGetImage
+              - ecr:BatchCheckLayerAvailability
+
+  # VPC Flow Logs for Security Monitoring
+  VPCFlowLog:
+    Type: AWS::EC2::FlowLog
+    Properties:
+      ResourceId: !Ref VPC
+      ResourceType: VPC
+      TrafficType: ALL
+      DeliverLogsPermissionArn: !GetAtt VPCFlowLogRole.Arn
+      LogDestinationType: cloud-watch-logs
+      LogGroupName: !Sub /aws/vpc/flowlogs/${AWS::StackName}
+
+  VPCFlowLogRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: vpc-flow-logs.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: flowlogs-policy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - logs:DescribeLogGroups
+                  - logs:DescribeLogStreams
+                Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/vpc/flowlogs/${AWS::StackName}:*
+
+  VPCFlowLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/vpc/flowlogs/${AWS::StackName}
+      RetentionInDays: 30
 
 Outputs:
   VPCId:
     Description: VPC ID
     Value: !Ref VPC
     Export:
-      Name: !Sub ${Environment}-VPCId
+      Name: !Sub ${AWS::StackName}-VPCId
 
   PublicSubnet1Id:
     Description: Public Subnet 1 ID
     Value: !Ref PublicSubnet1
     Export:
-      Name: !Sub ${Environment}-PublicSubnet1Id
+      Name: !Sub ${AWS::StackName}-PublicSubnet1Id
 
   PrivateSubnet1Id:
     Description: Private Subnet 1 ID
     Value: !Ref PrivateSubnet1
     Export:
-      Name: !Sub ${Environment}-PrivateSubnet1Id
+      Name: !Sub ${AWS::StackName}-PrivateSubnet1Id
 
-  ECRRepositoryUri:
+  APISecurityGroupId:
+    Description: API Security Group ID
+    Value: !Ref APISecurityGroup
+    Export:
+      Name: !Sub ${AWS::StackName}-APISecurityGroupId
+
+  ECRRepositoryURI:
     Description: ECR Repository URI
-    Value: !GetAtt ECRRepository.RepositoryUri
+    Value: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${ECRRepository}
     Export:
-      Name: !Sub ${Environment}-ECRRepositoryUri
-
-  SecurityGroupId:
-    Description: Security Group ID
-    Value: !Ref SecurityGroup
-    Export:
-      Name: !Sub ${Environment}-SecurityGroupId
+      Name: !Sub ${AWS::StackName}-ECRRepositoryURI
