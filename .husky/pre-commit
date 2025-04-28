@@ -1,0 +1,14 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Run linting
+npm run lint
+
+# Run tests
+npm test
+
+# Run security checks
+npm run security-check
+
+# Format code
+npm run format 

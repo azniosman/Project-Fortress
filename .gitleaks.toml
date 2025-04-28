@@ -1,0 +1,56 @@
+title = "Project Fortress Secret Scanning"
+
+[[rules]]
+description = "AWS Access Key"
+regex = '''AKIA[0-9A-Z]{16}'''
+tags = ["key", "AWS"]
+
+[[rules]]
+description = "AWS Secret Key"
+regex = '''(?i)aws(.{0,20})?(?-i)['\"][0-9a-zA-Z\/+]{40}['\"]'''
+tags = ["key", "AWS"]
+
+[[rules]]
+description = "JWT Secret"
+regex = '''(?i)jwt(.{0,20})?(?-i)['\"][0-9a-zA-Z]{32,}['\"]'''
+tags = ["key", "JWT"]
+
+[[rules]]
+description = "Database Password"
+regex = '''(?i)password(.{0,20})?(?-i)['\"][0-9a-zA-Z]{8,}['\"]'''
+tags = ["key", "database"]
+
+[[rules]]
+description = "API Key"
+regex = '''(?i)api(.{0,20})?(?-i)['\"][0-9a-zA-Z]{32,}['\"]'''
+tags = ["key", "API"]
+
+[[rules]]
+description = "Private Key"
+regex = '''-----BEGIN (RSA|EC|DSA|OPENSSH) PRIVATE KEY-----'''
+tags = ["key", "private"]
+
+[[rules]]
+description = "New Relic License Key"
+regex = '''(?i)newrelic(.{0,20})?(?-i)['\"][0-9a-zA-Z]{32,}['\"]'''
+tags = ["key", "newrelic"]
+
+[[rules]]
+description = "Slack Webhook URL"
+regex = '''https://hooks.slack.com/services/[A-Za-z0-9]{9}/[A-Za-z0-9]{9}/[A-Za-z0-9]{24}'''
+tags = ["key", "slack"]
+
+[[rules]]
+description = "GitHub Token"
+regex = '''ghp_[0-9a-zA-Z]{36}'''
+tags = ["key", "github"]
+
+[[rules]]
+description = "Email Password"
+regex = '''(?i)email(.{0,20})?(?-i)['\"][0-9a-zA-Z]{8,}['\"]'''
+tags = ["key", "email"]
+
+[[rules]]
+description = "Encryption Key"
+regex = '''(?i)encryption(.{0,20})?(?-i)['\"][0-9a-zA-Z]{32,}['\"]'''
+tags = ["key", "encryption"] 

@@ -26,7 +26,7 @@ Project Fortress is an initiative to modernize SecureWave's deployment pipeline 
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/your-org/project-fortress.git
+   git clone https://github.com/azniosman/project-fortress.git
    cd project-fortress
    ```
 

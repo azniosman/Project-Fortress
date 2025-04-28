@@ -1,0 +1,81 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# DevSecOps Project: Cloud-Native Secure Application Deployment
+
+## Company Profile
+
+**Company Name:** SecureWave Technologies, Inc.
+
+**Industry:** Financial Technology (FinTech)
+
+**Founded:** 2018
+
+**Company Size:** 150 employees
+
+**Headquarters:** Singapore, Raffles Quay
+
+**Company Overview:**
+SecureWave Technologies is a rapidly growing fintech company that provides digital payment processing solutions and financial analytics tools for small to medium-sized businesses. The company's flagship product, PaymentFlow, allows businesses to securely process payments, manage subscriptions, and gain insights into their financial operations through advanced analytics dashboards. SecureWave places a strong emphasis on security and compliance due to the sensitive financial data they handle for their customers.
+
+**Company Mission:**
+To empower businesses with secure, reliable, and intuitive financial technology solutions that drive growth and operational excellence.
+
+## Software Engineering Team
+
+**Team Name:** Platform Security Engineering
+
+**Team Size:** 8 members
+
+**Team Composition:**
+- 1 Engineering Manager
+- 2 Senior DevOps Engineers
+- 2 Senior Security Engineers
+- 2 Backend Developers
+- 1 Cloud Infrastructure Architect
+
+**Team Responsibilities:**
+- Maintaining and enhancing the security posture of PaymentFlow platform
+- Designing and implementing secure CI/CD pipelines
+- Ensuring compliance with financial regulations (PCI-DSS, SOC2)
+- Building and maintaining cloud infrastructure on AWS
+- Implementing automated security testing and monitoring
+- Managing incident response for security events
+
+## Project Name
+
+**Project Name:** Project Fortress
+
+**Project Description:**
+Project Fortress is an initiative to modernize SecureWave's deployment pipeline and enhance the security posture of the PaymentFlow API service. The project will involve containerizing the existing Node.js backend application, implementing a comprehensive CI/CD pipeline with integrated security controls, and deploying to AWS using infrastructure as code principles.
+
+**Project Goals:**
+1. Containerize the PaymentFlow API backend for consistent deployment across environments
+2. Implement a secure CI/CD pipeline with automated security testing
+3. Deploy to AWS using best practices for security and scalability
+4. Create comprehensive security and health monitoring dashboards
+5. Ensure compliance with PCI-DSS requirements for payment processing
+6. Reduce deployment time by 70% while maintaining or improving security controls
+7. Implement proactive security monitoring against OWASP Top 10 vulnerabilities
+
+**Business Drivers:**
+- Need to scale rapidly to meet growing customer demand
+- Recent security incidents in the industry highlighting the importance of robust security measures
+- Compliance requirements for financial data handling
+- Desire to improve developer productivity through automation
+- Requirement to maintain system reliability during rapid growth
+
+**Project Timeframe:** 
+3 months for initial implementation, with continuous improvement afterward
+
+**Project Stakeholders:**
+- CTO 
+- CISO
+- Product Management
+- Development Teams
+- Compliance Team
+- Customer Success Team
+
+This project represents SecureWave's commitment to maintaining the highest security standards while enabling the agility needed to compete in the fast-paced fintech market.
