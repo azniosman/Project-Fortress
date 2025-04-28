@@ -1,9 +1,9 @@
 # Dependencies
 node_modules/
+# package-lock.json  # Comment out or remove this line
 npm-debug.log
 yarn-debug.log
 yarn-error.log
-package-lock.json
 yarn.lock
 
 # Environment variables
@@ -27,6 +27,9 @@ out/
 # Logs
 logs/
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
 # Testing
 coverage/
@@ -89,10 +92,6 @@ ENV/
 .aws-sam-params.json
 .aws-sam-params.yaml
 .aws-sam-params.yml
-
-# Logs
-*.log
-logs/
 
 # Local development
 .env
