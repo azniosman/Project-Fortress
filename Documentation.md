@@ -62,6 +62,10 @@ AWS_ACCESS_KEY_ID=your_access_key
 AWS_SECRET_ACCESS_KEY=your_secret_key
 AWS_REGION=us-east-1
 SNYK_TOKEN=your_snyk_token
+SONAR_TOKEN=your_sonar_token
+CODECOV_TOKEN=yout_covecov_token
+ECR_REGISTRY=
+ECR_REPOSITORY=
 ```
 
 ## Security Measures

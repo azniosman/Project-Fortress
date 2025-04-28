@@ -1,4 +1,4 @@
-title = "Project Fortress Secret Scanning"
+title = "Project Fortress Gitleaks Configuration"
 
 [[rules]]
 description = "AWS Access Key"
@@ -11,46 +11,30 @@ regex = '''(?i)aws(.{0,20})?(?-i)['\"][0-9a-zA-Z\/+]{40}['\"]'''
 tags = ["key", "AWS"]
 
 [[rules]]
-description = "JWT Secret"
-regex = '''(?i)jwt(.{0,20})?(?-i)['\"][0-9a-zA-Z]{32,}['\"]'''
-tags = ["key", "JWT"]
-
-[[rules]]
-description = "Database Password"
-regex = '''(?i)password(.{0,20})?(?-i)['\"][0-9a-zA-Z]{8,}['\"]'''
-tags = ["key", "database"]
-
-[[rules]]
-description = "API Key"
-regex = '''(?i)api(.{0,20})?(?-i)['\"][0-9a-zA-Z]{32,}['\"]'''
-tags = ["key", "API"]
-
-[[rules]]
-description = "Private Key"
-regex = '''-----BEGIN (RSA|EC|DSA|OPENSSH) PRIVATE KEY-----'''
-tags = ["key", "private"]
-
-[[rules]]
-description = "New Relic License Key"
-regex = '''(?i)newrelic(.{0,20})?(?-i)['\"][0-9a-zA-Z]{32,}['\"]'''
-tags = ["key", "newrelic"]
-
-[[rules]]
-description = "Slack Webhook URL"
-regex = '''https://hooks.slack.com/services/[A-Za-z0-9]{9}/[A-Za-z0-9]{9}/[A-Za-z0-9]{24}'''
-tags = ["key", "slack"]
+description = "Stripe API Key"
+regex = '''(sk|pk)_(test|live)_[0-9a-zA-Z]{24}'''
+tags = ["key", "Stripe"]
 
 [[rules]]
 description = "GitHub Token"
 regex = '''ghp_[0-9a-zA-Z]{36}'''
-tags = ["key", "github"]
+tags = ["key", "GitHub"]
 
 [[rules]]
-description = "Email Password"
-regex = '''(?i)email(.{0,20})?(?-i)['\"][0-9a-zA-Z]{8,}['\"]'''
-tags = ["key", "email"]
+description = "SonarQube Token"
+regex = '''sonar_[0-9a-f]{40}'''
+tags = ["key", "SonarQube"]
 
 [[rules]]
-description = "Encryption Key"
-regex = '''(?i)encryption(.{0,20})?(?-i)['\"][0-9a-zA-Z]{32,}['\"]'''
-tags = ["key", "encryption"] 
+description = "Snyk Token"
+regex = '''[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'''
+tags = ["key", "Snyk"]
+
+[[rules]]
+description = "Codecov Token"
+regex = '''[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'''
+tags = ["key", "Codecov"]
+
+# Allowlist specific files or directories
+[[allowlist]]
+files = ['''^\.env\.example$'''] 
