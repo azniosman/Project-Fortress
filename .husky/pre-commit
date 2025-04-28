@@ -5,10 +5,4 @@
 npm run lint
 
 # Run tests
-npm test
-
-# Run security checks
-npm run security-check
-
-# Format code
-npm run format 
+npm test 

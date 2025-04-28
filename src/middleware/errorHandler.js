@@ -1,12 +1,12 @@
 const { logger } = require('../utils/logger');
 
-const errorHandler = (err, req, res, next) => {
+const errorHandler = (err, req, res, _next) => {
   logger.error({
     message: err.message,
     stack: err.stack,
     path: req.path,
     method: req.method,
-    ip: req.ip
+    ip: req.ip,
   });
 
   // Default error status and message
@@ -35,9 +35,9 @@ const errorHandler = (err, req, res, next) => {
       message,
       status,
       timestamp: new Date().toISOString(),
-      path: req.path
-    }
+      path: req.path,
+    },
   });
 };
 
-module.exports = { errorHandler }; 
+module.exports = { errorHandler };
