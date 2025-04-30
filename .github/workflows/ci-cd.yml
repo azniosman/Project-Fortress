@@ -1,10 +1,10 @@
-name: CI/CD Pipeline
+name: DevSecOps Pipeline
 
 on:
   push:
-    branches: [ main ]
+    branches: [main, staging, production]
   pull_request:
-    branches: [ main ]
+    branches: [main, staging, production]
   workflow_dispatch:
 
 env:
@@ -53,11 +53,24 @@ jobs:
             --failOnCVSS 7
             --enableRetired
 
-      - name: Upload dependency check report
+      - name: Run Gitleaks
+        uses: zricethezav/gitleaks-action@v1
+        with:
+          config-path: .gitleaks.toml
+
+      - name: Run SonarQube Analysis
+        uses: sonarsource/sonarqube-scan-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+      - name: Upload security reports
         uses: actions/upload-artifact@v3
         with:
-          name: dependency-check-report
-          path: reports
+          name: security-reports
+          path: |
+            reports/
+            .sonarqube/
 
   lint-test:
     name: Lint and Test
@@ -78,7 +91,7 @@ jobs:
 
       - name: Run ESLint
         run: npm run lint
-        
+
       - name: Run tests with coverage
         run: npm run test:coverage
 
@@ -101,10 +114,10 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Install AWS CLI
+      - name: Install AWS CLI and security tools
         run: |
           python -m pip install --upgrade pip
-          pip install awscli boto3
+          pip install awscli boto3 cfn-lint checkov
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -118,11 +131,16 @@ jobs:
           aws cloudformation validate-template \
             --template-body file://infrastructure/cloudformation/base-stack.yml
 
+      - name: Run cfn-lint
+        run: cfn-lint infrastructure/cloudformation/*.yml
+
+      - name: Run Checkov
+        run: checkov -d infrastructure/cloudformation/
+
   build-push:
     name: Build and Push
     runs-on: ubuntu-latest
     needs: [lint-test, infrastructure-validation]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -180,8 +198,8 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-access-key-id: ${{ secrets.DEV_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.DEV_AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Deploy to dev environment
@@ -209,8 +227,8 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-access-key-id: ${{ secrets.STAGING_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.STAGING_AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Deploy to staging environment
@@ -238,9 +256,9 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-access-key-id: ${{ secrets.PROD_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.PROD_AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Deploy to production environment
-        run: python infrastructure/scripts/deploy.py --environment prod --non-interactive 
+        run: python infrastructure/scripts/deploy.py --environment prod --non-interactive

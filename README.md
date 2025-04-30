@@ -1,27 +1,88 @@
 # Project Fortress
 
-A secure deployment pipeline for PaymentFlow API service, implementing DevSecOps best practices.
+A secure payment processing API service deployed on AWS using Kubernetes, implementing comprehensive security measures and DevSecOps practices.
 
-## Overview
+## DevSecOps Pipeline
 
-Project Fortress is an initiative to modernize SecureWave's deployment pipeline and enhance the security posture of the PaymentFlow API service. The project involves containerizing the existing Node.js backend application, implementing a comprehensive CI/CD pipeline with integrated security controls, and deploying to AWS using infrastructure as code principles.
+### Branch Strategy
 
-## Features
+- `development`: Main development branch, accessible to all developers
+- `staging`: Pre-production environment for testing
+- `production`: Production environment with strict access controls
 
-- Secure CloudFormation deployment with interactive menu
-- Resource verification and health checks
-- Environment-specific configurations (dev, staging, prod)
-- Comprehensive error handling and logging
-- AWS resource management and monitoring
+### Security Measures
 
-## Prerequisites
+1. **Static Application Security Testing (SAST)**
 
+   - CodeQL analysis for JavaScript and Python
+   - SonarQube code quality and security scanning
+   - Gitleaks for secret detection
+   - Snyk for dependency vulnerability scanning
+   - OWASP Dependency Check
+
+2. **Infrastructure Security**
+
+   - CloudFormation template validation
+   - cfn-lint for CloudFormation linting
+   - Checkov for infrastructure security scanning
+   - AWS security best practices enforcement
+
+3. **Container Security**
+
+   - Trivy vulnerability scanning
+   - Non-root user in containers
+   - Resource limits and requests
+   - Security context configurations
+
+4. **Environment Security**
+   - Separate AWS credentials for each environment
+   - Environment-specific secrets management
+   - Strict branch protection rules
+   - Required code reviews and approvals
+
+### CI/CD Pipeline Stages
+
+1. **Security Scanning**
+
+   - SAST with CodeQL
+   - Dependency vulnerability scanning
+   - Secret detection
+   - Code quality analysis
+
+2. **Lint and Test**
+
+   - ESLint code quality checks
+   - Unit tests with coverage
+   - Integration tests
+
+3. **Infrastructure Validation**
+
+   - CloudFormation template validation
+   - Security group validation
+   - Network configuration checks
+
+4. **Build and Push**
+
+   - Docker image building
+   - Container vulnerability scanning
+   - ECR repository push
+
+5. **Deployment**
+   - Dev environment deployment
+   - Staging environment deployment
+   - Production environment deployment
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 18.x
 - Python 3.8+
-- AWS CLI configured with appropriate credentials
-- Boto3 library
-- Robo library for CLI interactions
+- AWS CLI v2
+- Docker 20.x
+- Git
 
-## Installation
+### Environment Setup
 
 1. Clone the repository:
 
@@ -33,67 +94,56 @@ Project Fortress is an initiative to modernize SecureWave's deployment pipeline 
 2. Install dependencies:
 
    ```bash
+   npm install
    pip install -r requirements.txt
    ```
 
-## Usage
+3. Configure environment variables:
 
-### Deployment
+   ```bash
+   cp .env.example .env
+   # Edit .env with your configuration
+   ```
 
-To deploy the infrastructure:
-
-```bash
-./infrastructure/scripts/deploy.py
-```
-
-The script will:
-1. Prompt for environment selection (dev, staging, prod)
-2. Validate the CloudFormation template
-3. Create or update the stack
-4. Display stack outputs upon completion
-
-### Resource Verification
-
-To verify deployed resources:
-
-```bash
-./infrastructure/scripts/verify_resources.py
-```
-
-The script will:
-1. Prompt for environment selection
-2. Check the status of all deployed resources
-3. Display detailed status information
-
-## Project Structure
-
-```
-project-fortress/
-├── infrastructure/
-│   ├── scripts/
-│   │   ├── deploy.py
-│   │   └── verify_resources.py
-│   └── cloudformation/
-│       └── base-stack.yml
-├── .gitignore
-└── README.md
-```
+4. Run development server:
+   ```bash
+   npm run dev
+   ```
 
 ## Security
 
-- All deployments are performed with least privilege principles
-- Resources are tagged with environment and project information
-- Sensitive information is managed through AWS Parameter Store
-- Infrastructure changes are tracked and auditable
+### Secret Management
+
+- All secrets are stored in GitHub Secrets
+- Environment-specific secrets are used for deployments
+- Gitleaks prevents accidental secret commits
+- Regular secret rotation is enforced
+
+### Access Control
+
+- Branch protection rules enforce code review requirements
+- Environment-specific deployment permissions
+- Required security team approval for production deployments
+- Audit logging for all security events
 
 ## Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+For detailed contribution guidelines, please refer to [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Support
+
+For support, please contact:
+
+- Email: support@securewave.com
+- Slack: #project-fortress
+- Jira: Project Fortress

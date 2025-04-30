@@ -1,34 +1,66 @@
 title = "Project Fortress Gitleaks Configuration"
 
+[allowlist]
+description = "Allowlist for project-fortress"
+paths = [
+    '''\.git/''',
+    '''\.github/''',
+    '''\.gitignore''',
+    '''\.gitleaks\.toml''',
+    '''\.prettierrc''',
+    '''\.eslintrc\.json''',
+    '''jest\.config\.js''',
+    '''next\.config\.js''',
+    '''tsconfig\.json''',
+    '''package\.json''',
+    '''package-lock\.json''',
+    '''requirements\.txt''',
+    '''LICENSE''',
+    '''README\.md''',
+    '''Documentation\.md''',
+    '''CONTRIBUTING\.md''',
+]
+
 [[rules]]
+id = "aws-access-key"
 description = "AWS Access Key"
 regex = '''AKIA[0-9A-Z]{16}'''
 tags = ["key", "AWS"]
 
 [[rules]]
+id = "aws-secret-key"
 description = "AWS Secret Key"
-regex = '''(?i)aws(.{0,20})?(?-i)['\"][0-9a-zA-Z\/+]{40}['\"]'''
+regex = '''(?i)aws[_-]?secret[_-]?key[_-]?id[_-]?[=:]\s*[A-Za-z0-9/+=]{40}'''
 tags = ["key", "AWS"]
+
+[[rules]]
+id = "github-token"
+description = "GitHub Token"
+regex = '''gh[ps]_[A-Za-z0-9_]{36}'''
+tags = ["key", "GitHub"]
+
+[[rules]]
+id = "stripe-key"
+description = "Stripe Key"
+regex = '''(?:r|s)k_(?:test|live)_[0-9a-zA-Z]{24}'''
+tags = ["key", "Stripe"]
+
+[[rules]]
+id = "sonar-token"
+description = "SonarQube Token"
+regex = '''sonar[_-]?token[_-]?[=:]\s*[A-Za-z0-9]{40}'''
+tags = ["key", "SonarQube"]
+
+[[rules]]
+id = "snyk-token"
+description = "Snyk Token"
+regex = '''snyk[_-]?token[_-]?[=:]\s*[A-Za-z0-9]{36}'''
+tags = ["key", "Snyk"]
 
 [[rules]]
 description = "Stripe API Key"
 regex = '''(sk|pk)_(test|live)_[0-9a-zA-Z]{24}'''
 tags = ["key", "Stripe"]
-
-[[rules]]
-description = "GitHub Token"
-regex = '''ghp_[0-9a-zA-Z]{36}'''
-tags = ["key", "GitHub"]
-
-[[rules]]
-description = "SonarQube Token"
-regex = '''sonar_[0-9a-f]{40}'''
-tags = ["key", "SonarQube"]
-
-[[rules]]
-description = "Snyk Token"
-regex = '''[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'''
-tags = ["key", "Snyk"]
 
 [[rules]]
 description = "Codecov Token"
