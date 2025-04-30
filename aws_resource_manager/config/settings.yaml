@@ -1,0 +1,18 @@
+aws:
+  profile: default
+  region: us-east-1
+  retry_max_attempts: 5
+  retry_mode: adaptive
+general:
+  log_directory: /Users/azni/NTU/Projects/augment-projects/project-fortress/aws_resource_manager/logs
+  log_level: info
+  state_file: /Users/azni/NTU/Projects/augment-projects/project-fortress/aws_resource_manager/config/state.json
+security:
+  credentials_timeout: 3600
+  encrypt_state_file: true
+templates:
+  directory: /Users/azni/NTU/Projects/augment-projects/project-fortress/aws_resource_manager/templates
+ui:
+  color_scheme: default
+  prompt_confirmations: true
+  show_progress_bars: true
