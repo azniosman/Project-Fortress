@@ -1,0 +1,42 @@
+name: basic-server
+description: Basic EC2 server configuration with Amazon Linux 2
+
+parameters:
+  ImageId: ami-0c55b159cbfafe1f0 # Amazon Linux 2 in us-east-1
+  InstanceType: t2.micro
+  KeyName: my-key-pair
+  SubnetId: subnet-12345678
+  SecurityGroupIds:
+    - sg-12345678
+  UserData: |
+    #!/bin/bash
+    yum update -y
+    yum install -y httpd
+    systemctl start httpd
+    systemctl enable httpd
+    echo "Hello from AWS Resource Manager" > /var/www/html/index.html
+
+tags:
+  Name: basic-server
+  Environment: development
+  ManagedBy: aws-resource-manager
+  CreatedBy: ${USER}
+  CreatedOn: ${TIMESTAMP}
+
+storage:
+  RootVolumeSize: 8
+  RootVolumeType: gp2
+  DataVolumes:
+    - DeviceName: /dev/sdb
+      VolumeSize: 10
+      VolumeType: gp2
+      DeleteOnTermination: true
+
+networking:
+  AssignPublicIp: true
+  EnableMonitoring: true
+
+dependencies:
+  vpc: vpc-12345678
+  security_group: sg-12345678
+  subnet: subnet-12345678

@@ -1,0 +1,170 @@
+# Secure IAM Role Template for FinTech Applications
+# This template creates a least-privilege IAM role suitable for PaymentFlow services
+# following PCI-DSS compliance requirements
+
+name: secure_payment_processing_role
+description: 'Least privilege IAM role for PaymentFlow services following PCI-DSS requirements'
+resource_type: iam_role
+version: 1.0
+
+parameters:
+  RoleName:
+    description: 'Name of the role to create'
+    type: string
+    default: 'payment-processing-role'
+
+  TrustPolicy:
+    description: 'Trust policy for the role'
+    type: dict
+    default:
+      Version: '2012-10-17'
+      Statement:
+        - Effect: 'Allow'
+          Principal:
+            Service: 'ec2.amazonaws.com'
+          Action: 'sts:AssumeRole'
+          Condition:
+            StringEquals:
+              'aws:SourceAccount': '${AWS_ACCOUNT_ID}'
+
+  ManagedPolicies:
+    description: 'List of managed policies to attach'
+    type: list
+    default: []
+
+  Tags:
+    description: 'Tags to apply to the role'
+    type: dict
+    default:
+      Environment: 'production'
+      Application: 'PaymentFlow'
+      Compliance: 'PCI-DSS'
+      Team: 'SecurityEngineering'
+
+policy_document:
+  Version: '2012-10-17'
+  Statement:
+    # Allow read-only access to payment data
+    - Effect: 'Allow'
+      Action:
+        - 'dynamodb:GetItem'
+        - 'dynamodb:BatchGetItem'
+        - 'dynamodb:Query'
+        - 'dynamodb:Scan'
+      Resource:
+        - 'arn:aws:dynamodb:*:${AWS_ACCOUNT_ID}:table/PaymentFlow-*'
+      Condition:
+        StringEquals:
+          'aws:RequestTag/Environment': 'production'
+
+    # Allow encryption/decryption of payment data
+    - Effect: 'Allow'
+      Action:
+        - 'kms:Encrypt'
+        - 'kms:Decrypt'
+        - 'kms:ReEncrypt*'
+        - 'kms:GenerateDataKey*'
+        - 'kms:DescribeKey'
+      Resource:
+        - 'arn:aws:kms:*:${AWS_ACCOUNT_ID}:key/*'
+      Condition:
+        StringEquals:
+          'kms:ViaService': 'dynamodb.${AWS_REGION}.amazonaws.com'
+
+    # Allow publishing to encrypted SQS queues
+    - Effect: 'Allow'
+      Action:
+        - 'sqs:SendMessage'
+        - 'sqs:SendMessageBatch'
+        - 'sqs:GetQueueUrl'
+        - 'sqs:GetQueueAttributes'
+      Resource:
+        - 'arn:aws:sqs:*:${AWS_ACCOUNT_ID}:PaymentFlow-*'
+      Condition:
+        Bool:
+          'aws:SecureTransport': 'true'
+
+    # Allow CloudWatch monitoring
+    - Effect: 'Allow'
+      Action:
+        - 'cloudwatch:PutMetricData'
+        - 'logs:CreateLogGroup'
+        - 'logs:CreateLogStream'
+        - 'logs:PutLogEvents'
+        - 'logs:DescribeLogStreams'
+      Resource: '*'
+
+    # Allow S3 access only with encryption
+    - Effect: 'Allow'
+      Action:
+        - 's3:GetObject'
+        - 's3:PutObject'
+        - 's3:GetObjectVersion'
+        - 's3:ListBucket'
+      Resource:
+        - 'arn:aws:s3:::paymentflow-*'
+        - 'arn:aws:s3:::paymentflow-*/*'
+      Condition:
+        Bool:
+          's3:x-amz-server-side-encryption': 'true'
+
+    # Deny public S3 access
+    - Effect: 'Deny'
+      Action:
+        - 's3:PutBucketPublicAccessBlock'
+        - 's3:PutBucketPolicy'
+        - 's3:PutBucketAcl'
+        - 's3:PutObjectAcl'
+      Resource:
+        - 'arn:aws:s3:::paymentflow-*'
+        - 'arn:aws:s3:::paymentflow-*/*'
+      Condition:
+        Bool:
+          's3:PublicAccessBlockConfiguration:IgnorePublicAcls': 'false'
+
+validation:
+  - condition: 'len(RoleName) >= 4'
+    message: 'Role name must be at least 4 characters long'
+
+  - condition: "TrustPolicy and 'Statement' in TrustPolicy"
+    message: 'Trust policy must contain a Statement section'
+
+dependencies:
+  - resource_type: 'kms:key'
+    optional: false
+    description: 'KMS key for encryption of sensitive data'
+
+  - resource_type: 'dynamodb:table'
+    optional: false
+    description: 'DynamoDB table for payment data storage'
+
+  - resource_type: 'sqs:queue'
+    optional: true
+    description: 'SQS queue for payment processing'
+
+security_checks:
+  # Ensure role doesn't have wildcard permissions
+  - type: 'policy_check'
+    description: 'Check for wildcard permissions'
+    check:
+      not_contains:
+        - action: '*'
+          resource: '*'
+
+  # Ensure role requires encryption
+  - type: 'condition_check'
+    description: 'Verify that S3 operations require encryption'
+    check:
+      operations:
+        - 's3:PutObject'
+      required_conditions:
+        - 's3:x-amz-server-side-encryption'
+
+  # Ensure secure transport for all data
+  - type: 'condition_check'
+    description: 'Verify that all operations use secure transport'
+    check:
+      operations:
+        - 'sqs:SendMessage'
+      required_conditions:
+        - 'aws:SecureTransport'
