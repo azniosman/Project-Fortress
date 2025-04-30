@@ -1,8 +1,258 @@
 # Project Fortress Documentation
 
+## Repository Information
+
+- **Git Repository**: [https://github.com/azniosman/project-fortress.git](https://github.com/azniosman/project-fortress.git)
+- **License**: MIT
+- **Primary Branch**: main
+
 ## Overview
 
-Project Fortress is a secure deployment pipeline for PaymentFlow API service, implementing DevSecOps best practices. This documentation provides detailed information about the project setup, security measures, and deployment process.
+Project Fortress is a secure payment processing API service deployed on AWS using Kubernetes. The project implements a comprehensive monitoring and logging solution to ensure high availability, security, and observability.
+
+## Architecture
+
+### Infrastructure
+
+- **Cloud Provider**: AWS (us-east-1)
+- **Container Orchestration**: Kubernetes
+- **Container Runtime**: Docker
+- **Load Balancer**: AWS Application Load Balancer
+
+### Components
+
+1. **Payment API Service**
+
+   - Node.js backend application
+   - Containerized using Docker
+   - Deployed on Kubernetes with 3 replicas
+   - Resource limits: CPU 500m, Memory 512Mi
+   - Resource requests: CPU 200m, Memory 256Mi
+
+2. **Monitoring Stack**
+
+   - Prometheus for metrics collection
+   - Grafana for visualization
+   - Node Exporter for system metrics
+   - CloudWatch integration for AWS metrics
+
+3. **Logging Stack**
+   - AWS CloudWatch Logs
+   - Structured JSON logging
+   - Log retention: 30 days
+   - Centralized log aggregation
+
+## Deployment
+
+### Prerequisites
+
+- AWS CLI configured with appropriate credentials
+- kubectl installed and configured
+- Docker installed
+- Access to AWS ECR or other container registry
+
+### Environment Variables
+
+```bash
+AWS_REGION=us-east-1
+AWS_ACCESS_KEY_ID=<your-access-key>
+AWS_SECRET_ACCESS_KEY=<your-secret-key>
+NODE_ENV=production
+LOG_LEVEL=info
+```
+
+### Deployment Steps
+
+1. **Create Kubernetes Namespace**
+
+```bash
+kubectl create namespace fortress
+```
+
+2. **Create Grafana Secrets**
+
+```bash
+kubectl create secret generic grafana-secrets \
+  --namespace fortress \
+  --from-literal=admin-password=securewave123
+```
+
+3. **Deploy Monitoring Stack**
+
+```bash
+kubectl apply -f k8s/monitoring.yaml
+```
+
+4. **Deploy Application**
+
+```bash
+kubectl apply -f k8s/deployment.yaml
+```
+
+5. **Deploy Grafana Dashboard**
+
+```bash
+kubectl apply -f k8s/grafana-dashboard.yaml
+```
+
+## Monitoring
+
+### Metrics
+
+The following metrics are collected and monitored:
+
+1. **System Metrics**
+
+   - CPU Usage
+   - Memory Usage
+   - Disk I/O
+   - Network I/O
+
+2. **Application Metrics**
+
+   - HTTP Request Rate
+   - Response Time
+   - Error Rate
+   - Active Connections
+
+3. **Business Metrics**
+   - Payment Processing Rate
+   - Transaction Success Rate
+   - Average Transaction Value
+
+### Dashboards
+
+Grafana dashboards are available at:
+
+- Main Dashboard: `http://<grafana-service-ip>:3000`
+- Default credentials: admin/securewave123
+
+### Alerts
+
+CloudWatch alarms are configured for:
+
+- High CPU utilization (>80%)
+- High Memory utilization (>80%)
+- High API latency (>1 second)
+- Error rate thresholds
+
+## Logging
+
+### Log Structure
+
+```json
+{
+  "timestamp": "ISO8601",
+  "level": "info|error|warn|debug",
+  "message": "Log message",
+  "service": "payment-api",
+  "environment": "production",
+  "traceId": "unique-trace-id",
+  "metadata": {
+    "requestId": "unique-request-id",
+    "userId": "user-id",
+    "transactionId": "transaction-id"
+  }
+}
+```
+
+### Log Access
+
+- CloudWatch Logs: `/payment-api/production`
+- Log Groups: Organized by date and service
+- Log Retention: 30 days
+
+## Security
+
+### Container Security
+
+- Non-root user in containers
+- Resource limits and requests
+- Security context configurations
+- Regular security updates
+
+### Network Security
+
+- Kubernetes network policies
+- AWS security groups
+- TLS encryption
+- API authentication
+
+### Monitoring Security
+
+- Secure Grafana access
+- Encrypted metrics storage
+- Secure log transmission
+- Access control for dashboards
+
+## Maintenance
+
+### Health Checks
+
+- Liveness probe: `/health` endpoint
+- Readiness probe: `/health` endpoint
+- Probe intervals: 5-10 seconds
+- Initial delay: 30 seconds
+
+### Scaling
+
+- Horizontal Pod Autoscaling (HPA)
+- Based on CPU and Memory metrics
+- Minimum replicas: 3
+- Maximum replicas: 10
+
+### Backup
+
+- Grafana dashboards backup
+- Prometheus data retention
+- Log archival
+- Configuration version control
+
+## Troubleshooting
+
+### Common Issues
+
+1. **High CPU Usage**
+
+   - Check application logs
+   - Review recent deployments
+   - Analyze request patterns
+   - Scale resources if needed
+
+2. **High Memory Usage**
+
+   - Check for memory leaks
+   - Review garbage collection
+   - Analyze heap dumps
+   - Adjust memory limits
+
+3. **High Latency**
+   - Check network policies
+   - Review database performance
+   - Analyze request patterns
+   - Check external service dependencies
+
+### Debug Tools
+
+- kubectl logs
+- kubectl describe
+- kubectl exec
+- Grafana dashboards
+- CloudWatch Logs Insights
+
+## Contributing
+
+1. Fork the repository at [https://github.com/azniosman/project-fortress.git](https://github.com/azniosman/project-fortress.git)
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+For detailed contribution guidelines, please refer to [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## Table of Contents
 
@@ -242,18 +492,6 @@ python infrastructure/scripts/verify_resources.py
 - CloudFormation stack events
 - GitHub Actions logs
 - Security scan reports
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## Support
 

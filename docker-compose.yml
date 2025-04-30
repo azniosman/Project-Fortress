@@ -1,0 +1,114 @@
+version: '3.8'
+
+services:
+  # Main Application
+  payment-api:
+    build: .
+    ports:
+      - '3000:3000'
+    environment:
+      - NODE_ENV=production
+      - LOG_LEVEL=info
+      - AWS_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+    volumes:
+      - ./logs:/app/logs
+    depends_on:
+      - elasticsearch
+      - prometheus
+    networks:
+      - fortress-network
+    logging:
+      driver: 'awslogs'
+      options:
+        awslogs-region: us-east-1
+        awslogs-group: '/payment-api/production'
+        awslogs-stream-prefix: 'payment-api'
+        awslogs-create-group: 'true'
+
+  # Logging Stack
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.1
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - 'ES_JAVA_OPTS=-Xms512m -Xmx512m'
+    ports:
+      - '9200:9200'
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    networks:
+      - fortress-network
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.12.1
+    volumes:
+      - ./logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml
+      - ./logstash/pipeline:/usr/share/logstash/pipeline
+    ports:
+      - '5044:5044'
+    depends_on:
+      - elasticsearch
+    networks:
+      - fortress-network
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.12.1
+    ports:
+      - '5601:5601'
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    depends_on:
+      - elasticsearch
+    networks:
+      - fortress-network
+
+  # Monitoring Stack
+  prometheus:
+    image: prom/prometheus:v2.49.1
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    ports:
+      - '9090:9090'
+    networks:
+      - fortress-network
+
+  grafana:
+    image: grafana/grafana:10.2.3
+    ports:
+      - '3001:3000'
+    volumes:
+      - grafana-data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=securewave123
+      - GF_USERS_ALLOW_SIGN_UP=false
+    depends_on:
+      - prometheus
+    networks:
+      - fortress-network
+
+  node-exporter:
+    image: prom/node-exporter:v1.7.0
+    ports:
+      - '9100:9100'
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    networks:
+      - fortress-network
+
+volumes:
+  elasticsearch-data:
+  prometheus-data:
+  grafana-data:
+
+networks:
+  fortress-network:
+    driver: bridge

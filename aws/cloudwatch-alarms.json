@@ -1,0 +1,69 @@
+{
+  "Alarms": [
+    {
+      "AlarmName": "payment-api-high-cpu",
+      "AlarmDescription": "Alarm when CPU exceeds 80%",
+      "MetricName": "CPUUtilization",
+      "Namespace": "AWS/ECS",
+      "Statistic": "Average",
+      "Period": 300,
+      "EvaluationPeriods": 2,
+      "Threshold": 80,
+      "ComparisonOperator": "GreaterThanThreshold",
+      "Dimensions": [
+        {
+          "Name": "ServiceName",
+          "Value": "payment-api"
+        },
+        {
+          "Name": "ClusterName",
+          "Value": "fortress-cluster"
+        }
+      ],
+      "AlarmActions": ["${ALARM_SNS_TOPIC}"],
+      "OKActions": ["${ALARM_SNS_TOPIC}"]
+    },
+    {
+      "AlarmName": "payment-api-high-memory",
+      "AlarmDescription": "Alarm when memory exceeds 80%",
+      "MetricName": "MemoryUtilization",
+      "Namespace": "AWS/ECS",
+      "Statistic": "Average",
+      "Period": 300,
+      "EvaluationPeriods": 2,
+      "Threshold": 80,
+      "ComparisonOperator": "GreaterThanThreshold",
+      "Dimensions": [
+        {
+          "Name": "ServiceName",
+          "Value": "payment-api"
+        },
+        {
+          "Name": "ClusterName",
+          "Value": "fortress-cluster"
+        }
+      ],
+      "AlarmActions": ["${ALARM_SNS_TOPIC}"],
+      "OKActions": ["${ALARM_SNS_TOPIC}"]
+    },
+    {
+      "AlarmName": "payment-api-high-latency",
+      "AlarmDescription": "Alarm when API latency exceeds 1 second",
+      "MetricName": "TargetResponseTime",
+      "Namespace": "AWS/ApplicationELB",
+      "Statistic": "Average",
+      "Period": 300,
+      "EvaluationPeriods": 2,
+      "Threshold": 1,
+      "ComparisonOperator": "GreaterThanThreshold",
+      "Dimensions": [
+        {
+          "Name": "LoadBalancer",
+          "Value": "payment-api-alb"
+        }
+      ],
+      "AlarmActions": ["${ALARM_SNS_TOPIC}"],
+      "OKActions": ["${ALARM_SNS_TOPIC}"]
+    }
+  ]
+}

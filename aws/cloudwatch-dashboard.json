@@ -1,0 +1,65 @@
+{
+  "widgets": [
+    {
+      "type": "metric",
+      "x": 0,
+      "y": 0,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          [
+            "AWS/ECS",
+            "CPUUtilization",
+            "ServiceName",
+            "payment-api",
+            "ClusterName",
+            "fortress-cluster"
+          ],
+          [
+            "AWS/ECS",
+            "MemoryUtilization",
+            "ServiceName",
+            "payment-api",
+            "ClusterName",
+            "fortress-cluster"
+          ]
+        ],
+        "view": "timeSeries",
+        "stacked": false,
+        "region": "us-east-1",
+        "title": "ECS Service Metrics"
+      }
+    },
+    {
+      "type": "metric",
+      "x": 12,
+      "y": 0,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          ["AWS/ApplicationELB", "RequestCount", "LoadBalancer", "payment-api-alb"],
+          ["AWS/ApplicationELB", "TargetResponseTime", "LoadBalancer", "payment-api-alb"]
+        ],
+        "view": "timeSeries",
+        "stacked": false,
+        "region": "us-east-1",
+        "title": "Load Balancer Metrics"
+      }
+    },
+    {
+      "type": "log",
+      "x": 0,
+      "y": 6,
+      "width": 24,
+      "height": 6,
+      "properties": {
+        "query": "SOURCE '/payment-api/production' | fields @timestamp, @message\n| filter level = 'ERROR'\n| sort @timestamp desc\n| limit 20",
+        "region": "us-east-1",
+        "title": "Recent Error Logs",
+        "view": "table"
+      }
+    }
+  ]
+}
